@@ -81,17 +81,17 @@ Each line in `examiners.txt` and `students.txt` contains a name and a gender mar
 Example `examiners.txt`:
 
 ```text
-Степан М
-Дарья Ж
-Михаил М
+James М
+Emily Ж
+Michael М
 ```
 
 Example `students.txt`:
 
 ```text
-Петр М
-Сергей М
-Варвара Ж
+Oliver М
+Ethan М
+Sophia Ж
 ```
 
 Each question in `questions.txt` must appear on a separate line. At least three questions are required.
