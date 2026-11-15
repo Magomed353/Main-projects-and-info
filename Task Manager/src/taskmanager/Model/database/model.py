@@ -9,8 +9,8 @@ class Base(DeclarativeBase):
 
 class User(Base):
     __tablename__ = "users"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    login: Mapped[str] = mapped_column(String(20), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, unique=True, primary_key=True, autoincrement=True)
+    login: Mapped[str] = mapped_column(String(20), unique=True , nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
 class Task(Base):

@@ -26,8 +26,12 @@ async def get_hash_db(login):
         statement = select(User.password).filter_by(login=login)
         result = await conn.execute(statement)
         return result.scalar_one_or_none()
-        
-# Последнее что делал это авторизацию, для этого надо разобратся в session и понять в целом как всё работает 
+
+async def get_login_db(login):
+    async with AsyncSession(engine) as conn:
+        statement = select(User.login).filter_by(login=login)
+        result = await conn.execute(statement)
+        return result.scalar_one_or_none()
 
 async def delete_task(user):
     async with engine.begin() as conn:

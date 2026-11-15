@@ -8,18 +8,16 @@ from ..Model.database.database import drop_tables as dt, create_tables as ct
 app = FastAPI()
 
 @app.post("/registration")
-async def registration(data: UserSchema):
-    return await auth_service.registration(data.login, data.password_hash)
+async def registration(user: UserSchema):
+    return await auth_service.registration(user.login, user.password_hash)
 
-@app.post("/authorization")
-async def authorization(data: UserSchema):
-    result = await auth_service.authorization(data.login, data.password_hash)
-    if result == None:
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={"status": False, "message": "Неверный логин или пароль"}
-            )
-    return {"status": True, "message": "Авторизованы"}
+@app.post("/authentification")
+async def authentification(data: UserSchema):
+    return await auth_service.authentification(data)
+
+# @app.get()
+# async def get_token():
+#     pass
 
 @app.delete("/delete")
 async def delete_tables():
@@ -29,9 +27,6 @@ async def delete_tables():
 async def create_tables():
     return  await ct()
 
-# @app.get("/")
-# @authorization
-# def connect(request: Request):
-#     return 200
 
+# Функции выдачи jwt_tokena надо переделать, вынести их отдельно в файл jwt_service
 
