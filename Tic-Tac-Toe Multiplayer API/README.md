@@ -1,118 +1,307 @@
-# Project Backend 04 — Python_Bootcamp
+# Tic-Tac-Toe — Multiplayer API
 
-**Summary:**  
-In this project, you will learn how to add databases to web applications in Python using Flask and work with authorization.
+A Flask REST API for playing Tic-Tac-Toe against a computer or another user.
 
-💡 [Click here](https://new.oprosso.net/p/4cb31ec3f47a4596bc758ea1861fb624) to share your feedback on this project. It’s anonymous and helps our team improve the learning experience. We recommend completing the survey immediately after finishing the project.
+The project extends the previous version by adding PostgreSQL persistence, user registration, HTTP Basic Auth, and a two-player mode.
 
-## Contents
+## Features
 
-  - [Chapter I](#chapter-i)
-    - [Instructions](#instructions)
-  - [Chapter II](#chapter-ii)
-    - [General Information](#general-information)
-      - [Authorization](#authorization)
-      - [Identification, Authentication, Authorization](#identification-authentication-authorization)
-      - [Authorization Using Login and Password](#authorization-using-login-and-password)
-    - [Topics to Study](#topics-to-study)
-  - [Chapter III](#chapter-iii)
-    - [Task 1. Adding a Database](#task-1-adding-a-database)
-    - [Task 2. Adding Authorization](#task-2-adding-authorization)
-    - [Task 3. Adding Game Logic for Two Players](#task-3-adding-game-logic-for-two-players)
+- User registration with unique usernames and UUIDs.
+- Authentication using HTTP Basic Auth.
+- Authentication checks for game endpoints.
+- Creating games against a computer or another user.
+- Listing games waiting for a second player.
+- Joining an existing game.
+- Switching turns between players.
+- Generating computer moves using Minimax.
+- Detecting wins and draws.
+- Storing users and game states in PostgreSQL.
+- Retrieving game and user information by UUID.
 
-## Chapter I
+## Technologies
 
-### Instructions
+- **Python 3.10+**
+- **Flask** — HTTP routing and JSON responses.
+- **PostgreSQL** — persistent user and game storage.
+- **SQLAlchemy 2.x** — ORM and database access.
+- **psycopg2** — PostgreSQL database driver.
+- **HTTP Basic Auth** — request authentication.
+- **Minimax** — computer move selection.
+- **uuid** — user and game identifiers.
 
-How to learn at “School 21”:
+## Architecture
 
-- Here, you’ll find a unique learning experience with a lot of freedom. You’re given a task and left to find your own way to solve it, using whatever resources work best for you — whether that’s the Internet or AI tools like GigaChat. Just be mindful of information quality: verify, think critically, analyze, and compare.
-- Peer-to-peer (P2P) learning is the exchange of knowledge and experience with peers, where everyone acts as both mentor and student. This approach allows you to gain a deeper understanding of the material by learning from one another.
-- Feel free to ask for help: around you are peers who are also navigating this path for the first time. Share your own experience and ideas with others.  Join Rocket.Chat to stay updated with the latest community announcements. 
-- Your learning is meaningless if you just copy someone else’s solutions. When receiving help from others, always make sure you fully understand the “why”, “how”, and “purpose” behind the solution. Don’t be afraid to make mistakes. 
-- Does the task seem impossible? Take a break, get some fresh air and clear your mind — this has helped many people. Maybe after that, the solution will come to you naturally.
-- The learning process is just as important as the result. It’s not just about completing the task — it’s about understanding HOW to solve it. 
+The application is organized into four layers:
 
-How to work with the project:
+| Layer | Responsibility |
+| --- | --- |
+| `web` | HTTP routes, request and response models, authentication checks, and data mapping. |
+| `domain` | Game models, game states, Minimax logic, and the authentication service. |
+| `datasource` | ORM models, PostgreSQL connectivity, repositories, and mappers. |
+| `di` | Creating and connecting repositories and services through a dependency container. |
 
-- Before starting, clone the project from GitLab into a repository with the same name.
-- All files should be created inside the _src/_ folder of the cloned repository.
-- After cloning the project, create a _develop_ branch and do all your development there. Then, push the _develop_ branch to GitLab.
-- Your directory should not contain any files other than those specified in the assignments.
+Mappers convert models between application layers. Repositories provide access to stored data.
 
-## Chapter II
+## Project Structure
 
-### General Information
+```text
+src/
+├── web/
+│   ├── model/
+│   ├── mapper/
+│   └── route/
+│       ├── controller.py
+│       ├── auth_controller.py
+│       └── auth_middleware.py
+├── domain/
+│   ├── model/
+│   └── service/
+├── datasource/
+│   ├── database.py
+│   ├── model/
+│   ├── mapper/
+│   └── repository/
+└── di/
+    └── container.py
+```
 
-#### Authorization
+## Installation
 
-Authorization tools control access of legitimate users to system resources, granting each user only the rights assigned by the administrator.
+Python 3.10+, `pip`, and a running PostgreSQL server are required.
 
-#### Identification, Authentication, Authorization
+Install the dependencies from the project root:
 
-- **Identification** is the process by which a subject’s unique identifier is established, unambiguously defining them within an information system.
-- **Authentication** is the procedure of verifying authenticity — for example, validating a user by comparing the entered password with the stored password in the system.
-- **Authorization** is the granting of rights to a specific individual or group to perform a defined set of actions.
+```bash
+python -m pip install Flask "SQLAlchemy>=2.0,<3.0" psycopg2-binary
+```
 
-#### Authorization Using Login and Password
+### PostgreSQL Configuration
 
-This method is based on the user providing a login and password for successful identification and authentication within the system. The login-password pair is set by the user during registration. Upon successful authorization, the server grants the user rights to perform permitted requests.  
-The client sends a request to the server and receives an "Unauthorized" message along with information on how to authorize. After successful authorization, each subsequent client request automatically includes an Authorization header ([authorization header formation](https://datatracker.ietf.org/doc/html/rfc7617)), which carries client credentials for server authentication.
+Create a database, for example:
 
-![auth_eng](misc/images/Auth_ENG.png)
+```sql
+CREATE DATABASE tictactoe;
+```
 
-[Other methods of authorization](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes) also exist.
+Set the connection string in `src/datasource/database.py`:
 
-### Topics to Study
+```python
+DATABASE_URL = "postgresql://USER:PASSWORD@localhost:5432/tictactoe"
+```
 
-- Web application,
-- Authorization using login and password pair (basic auth),
-- PostgreSQL,
-- Flask,
-- SQLAlchemy.
+Replace `USER` and `PASSWORD` with the credentials of a PostgreSQL user with the necessary database permissions.
 
-## Chapter III
+The connection is configured directly in the file. Loading configuration from `.env` files or environment variables is not currently implemented.
 
-## Project: Tic-Tac-Toe
-Use the backend project from last week’s T03.
+The `users` and `games` tables are created automatically during application initialization. The database itself must already exist.
 
-### Task 1. Adding a Database
+## Running the Application
 
-- Define the connection to a PostgreSQL database using SQLAlchemy.
-- Remove the storage class.
-- Add appropriate annotations to class parameters that need to be persisted in the database.
+Run the following commands from the project root:
 
-### Task 2. Adding Authorization
+```bash
+cd src
+python -m web.route.controller
+```
 
-- Add users with UUID, login, and password.
-- Implement user support across all layers.
-- Create a SignUpRequest model containing login and password.
-- Create an authorization service that uses UserService:
-  - a registration method that accepts a SignUpRequest and returns a success status;
-  - an authorization method that accepts login and password encoded in Base64 (login:password) in the header and returns the user’s UUID.
-- Create an authorization controller with the following endpoints:
-  - user registration;
-  - user authorization (login).
-- Create a UserAuthenticator structure that protects against requests from unauthorized users:
-  - validate login and password;
-  - if validation succeeds, process the request;
-  - if validation fails, respond with status code 401 and do not process the request.
-- Apply UserAuthenticator to your endpoints:
-  - allow unauthenticated access to registration and authorization endpoints;
-  - require authorization for all other endpoints.
+Run the application from `src` so that imports between project layers resolve correctly.
 
-### Task 3. Adding Game Logic for Two Players
+The development server starts at `http://127.0.0.1:5000` with debug mode enabled.
 
-- Add states for the current game:
-  - Waiting for players;
-  - Player’s turn with UUID;
-  - Draw;
-  - Victory for player with UUID.
-- Add information about the marks (symbols) that users will use during the game.
-- Improve the game-ending logic using the defined states.
-- Add an endpoint for creating a new game with either a user or the computer.
-- Add an endpoint to retrieve available current games.
-- Add an endpoint for a user to join a game.
-- Improve the endpoint for updating the current game, considering whether the opponent is a user or the computer.
-- Add an endpoint to retrieve the current game.
-- Add an endpoint to retrieve user information by UUID.
+Use Postman or another HTTP client to interact with the API.
+
+## Authentication
+
+### Registration
+
+```http
+POST /signup
+Content-Type: application/json
+```
+
+Example request body:
+
+```json
+{
+  "login": "alice",
+  "password": "example-password"
+}
+```
+
+Successful registration returns HTTP status `201`:
+
+```json
+{
+  "status": "зарегистрирован"
+}
+```
+
+### Login
+
+```http
+POST /login
+Authorization: Basic <Base64(login:password)>
+```
+
+The server validates the credentials and returns the user’s UUID.
+
+In Postman, select **Basic Auth** and enter the username and password. The client generates the header automatically.
+
+Every protected request must include Basic Auth credentials. The `/login` endpoint returns a user UUID rather than an access token.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/signup` | Register a user. |
+| `POST` | `/login` | Validate credentials and retrieve the user’s UUID. |
+| `POST` | `/game/new` | Create a game. |
+| `GET` | `/games` | List games with the `WAITING` status. |
+| `POST` | `/game/{uuid}/join` | Join a game. |
+| `POST` | `/game/{uuid}` | Submit a move. |
+| `GET` | `/game/{uuid}` | Retrieve the current game state. |
+| `GET` | `/user/{uuid}` | Retrieve a user’s UUID and username. |
+
+All game endpoints and the user information endpoint require Basic Auth.
+
+## Creating a Game
+
+```http
+POST /game/new
+Content-Type: application/json
+```
+
+Example request for a game against another user:
+
+```json
+{
+  "game_type": "VS_PLAYER"
+}
+```
+
+Available modes:
+
+| Value | Mode |
+| --- | --- |
+| `VS_COMPUTER` | Play against the computer. |
+| `VS_PLAYER` | Play against another user. |
+
+To play against the computer, send:
+
+```json
+{
+  "game_type": "VS_COMPUTER"
+}
+```
+
+The response contains the game UUID, board, game mode, and initial status.
+
+## Board Representation
+
+The board is represented as a 3×3 integer matrix:
+
+| Value | Meaning |
+| --- | --- |
+| `0` | Empty cell. |
+| `1` | First player’s mark. |
+| `2` | Second player’s or computer’s mark. |
+
+### Submitting a Move
+
+```http
+POST /game/{uuid}
+Content-Type: application/json
+```
+
+Send the complete board after making your move:
+
+```json
+{
+  "field": [
+    [1, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+  ]
+}
+```
+
+In `VS_COMPUTER` mode, the server generates a computer response. In `VS_PLAYER` mode, it passes the turn to the next player.
+
+The response contains:
+
+| Field | Description |
+| --- | --- |
+| `uuid` | Game identifier. |
+| `field` | Updated board. |
+| `status` | Result of the game completion check. |
+| `current_turn` | Next player’s UUID or `null`. |
+
+## Game States
+
+The game model uses the following states:
+
+| State | Description |
+| --- | --- |
+| `WAITING` | Waiting for a second player. |
+| `PLAYER_TURN` | A player’s turn. |
+| `DRAW` | The game ended in a draw. |
+| `PLAYER_WIN` | One of the players won. |
+
+The move endpoint may also return `CONTINUE` when the game is still in progress.
+
+## Two-Player Example
+
+1. Register two users, such as `alice` and `bob`.
+2. As `alice`, create a game with the `VS_PLAYER` mode.
+3. As `bob`, retrieve available games using `GET /games`.
+4. Join the selected game using `POST /game/{uuid}/join`.
+5. Take turns submitting updated boards through `POST /game/{uuid}`, using the corresponding player’s credentials.
+6. Retrieve the game state using `GET /game/{uuid}`.
+
+## Error Responses
+
+| HTTP Status | Example Causes |
+| --- | --- |
+| `400` | An invalid move, an attempt to move out of turn, a finished game, or a full game. |
+| `401` | Missing authentication or an incorrect username/password pair. |
+| `404` | The game or user was not found. |
+| `409` | A user with the specified username already exists. |
+
+For explicitly handled errors, the server returns JSON:
+
+```json
+{
+  "error": "Сейчас не ваш ход"
+}
+```
+
+## Data Storage
+
+PostgreSQL stores:
+
+- Each user’s UUID, username, and password.
+- Each game’s UUID and board.
+- Game mode and status.
+- Participants and their assigned symbols.
+- The UUID of the player whose turn it is.
+
+Data persists across application restarts. Tables are created through SQLAlchemy; database migrations are not currently implemented.
+
+## Current Limitations
+
+- Passwords are stored and compared without hashing.
+- Board validation, game membership checks, and joining conditions require further work.
+- Consistency between the stored game status and `current_turn` during move processing requires further work.
+- A victory returns `PLAYER_WIN`, but the winner’s UUID is not stored or returned separately.
+
+## Skills Practiced
+
+- Building a Flask REST API.
+- Connecting PostgreSQL and working with SQLAlchemy.
+- Creating ORM models and repositories.
+- Implementing user registration and HTTP Basic Auth.
+- Protecting endpoints with decorators.
+- Implementing game logic for two users.
+- Using the Minimax algorithm.
+- Designing a layered architecture.
+- Applying dependency injection and mapping models between layers.
